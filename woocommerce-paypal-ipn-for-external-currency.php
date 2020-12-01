@@ -82,7 +82,7 @@ class Woocommerce_Paypal_Ipn_For_External_Currency extends WC_Gateway_Paypal_Res
         $this->exchangeRate = $this->options['exchangeRate'];
 
         add_filter('woocommerce_paypal_supported_currencies', [$this, 'add_paypal_valid_currency']);
-        add_filter('woocommerce_paypal_args', [$this, 'convert_'.$this->options['currencyCode'].'_to_usd'], 11);
+        add_filter('woocommerce_paypal_args', [$this, 'convert_currency_rate_to_usd'], 11);
 
         add_action('valid-paypal-standard-ipn-request', [$this, 'checkIPN']);
 
@@ -95,7 +95,7 @@ class Woocommerce_Paypal_Ipn_For_External_Currency extends WC_Gateway_Paypal_Res
 
     }
 
-    public function convert_vnd_to_usd($paypal_args)
+    public function convert_currency_rate_to_usd($paypal_args)
     {
         WC_Gateway_Paypal::log('Encoded Paypal Args: '.json_encode($paypal_args));
 
@@ -208,14 +208,14 @@ class Woocommerce_Paypal_Ipn_For_External_Currency extends WC_Gateway_Paypal_Res
      *
      * @param WC_Order $order Order object.
      * @param int $amount Amount to validate.
-     * @param $currency
+     * @param string $currency
      */
     protected function validate_amount($order, $amount, $currency)
     {
         $orderCurrency = $order->get_currency();
 
         // Convert based rate if difference currency
-        if (strtolower($orderCurrency) == 'vnd' && strtolower($currency) == 'usd') {
+        if (strtolower($orderCurrency) == strtolower($this->options['currencyCode']) && strtolower($currency) == 'usd') {
             $amount *= $this->exchangeRate;
         }
 
