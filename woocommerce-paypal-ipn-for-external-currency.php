@@ -81,14 +81,14 @@ class Woocommerce_Paypal_Ipn_For_External_Currency extends WC_Gateway_Paypal_Res
         $this->options = get_option($this->pluginName);
         $this->exchangeRate = $this->options['exchangeRate'];
 
-        add_filter('woocommerce_paypal_supported_currencies', [$this, 'add_vnd_paypal_valid_currency']);
-        add_filter('woocommerce_paypal_args', [$this, 'convert_vnd_to_usd'], 11);
+        add_filter('woocommerce_paypal_supported_currencies', [$this, 'add_paypal_valid_currency']);
+        add_filter('woocommerce_paypal_args', [$this, 'convert_'.$this->options['currencyCode'].'_to_usd'], 11);
 
         add_action('valid-paypal-standard-ipn-request', [$this, 'checkIPN']);
 
     }
 
-    public function add_vnd_paypal_valid_currency($currencies)
+    public function add_paypal_valid_currency($currencies)
     {
         array_push($currencies, strtoupper($this->options['currencyCode']));
         return $currencies;
