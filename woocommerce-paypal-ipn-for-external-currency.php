@@ -97,7 +97,7 @@ class Woocommerce_Paypal_Ipn_For_External_Currency extends WC_Gateway_Paypal_Res
 
     public function convert_currency_rate_to_usd($paypal_args)
     {
-        WC_Gateway_Paypal::log('Encoded Paypal Args: '.json_encode($paypal_args));
+        WC_Gateway_Paypal::log('Encoded Paypal Args: ' . json_encode($paypal_args));
 
         if (strtolower($paypal_args['currency_code']) == strtolower($this->options['currencyCode'])) {
 
@@ -110,8 +110,8 @@ class Woocommerce_Paypal_Ipn_For_External_Currency extends WC_Gateway_Paypal_Res
                 $paypal_args['amount_' . $i] = round($paypal_args['amount_' . $i] / $convertRate, 2);
             }
 
-            if ($paypal_args['shipping_'.$i] > 0) {
-                $paypal_args['shipping_'.$i] = round($paypal_args['shipping_'.$i] / $convertRate, 2);
+            if ($paypal_args['shipping_' . $i] > 0) {
+                $paypal_args['shipping_' . $i] = round($paypal_args['shipping_' . $i] / $convertRate, 2);
             }
 
             if ($paypal_args['discount_amount_cart'] > 0) {
@@ -213,15 +213,19 @@ class Woocommerce_Paypal_Ipn_For_External_Currency extends WC_Gateway_Paypal_Res
     protected function validate_amount($order, $amount, $currency)
     {
         $orderCurrency = $order->get_currency();
+        $orderAmount = $order->get_total();
 
         // Convert based rate if difference currency
         if (strtolower($orderCurrency) == strtolower($this->options['currencyCode']) && strtolower($currency) == 'usd') {
-            $amount *= $this->exchangeRate;
+            $orderAmount /= $this->exchangeRate;
         }
 
-        WC_Gateway_Paypal::log('Order Amount:' . number_format($order->get_total(), 2, '.', '') . ' | Exchanged Amount: ' . number_format($amount, 2, '.', ''));
+        $orderAmount = number_format($orderAmount, 2, '.', '');
+        $ipnAmount = number_format($amount, 2, '.', '');
 
-        if (number_format($order->get_total(), 2, '.', '') !== number_format($amount, 2, '.', '')) {
+        WC_Gateway_Paypal::log('Order Amount:' . $orderAmount . ' | Paypal IPN Amount: ' . $ipnAmount);
+
+        if (strval($orderAmount) != strval($ipnAmount)) {
             WC_Gateway_Paypal::log('Payment error: Amounts do not match (gross ' . $amount . ')');
 
             /* translators: %s: Amount. */
